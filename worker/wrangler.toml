@@ -1,0 +1,11 @@
+name = "bukang-rank"
+main = "worker.js"
+compatibility_date = "2026-10-01"
+
+[vars]
+REPO = "lloydknam/bukang-escape"
+FILE = "scores.json"
+ALLOWED_ORIGINS = "https://lloydknam.github.io"
+
+# GH_TOKEN은 파일에 적지 말고 아래 명령으로 비밀 변수로 등록하세요.
+#   npx wrangler secret put GH_TOKEN
