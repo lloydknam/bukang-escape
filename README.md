@@ -25,7 +25,16 @@ GitHub → Settings → Developer settings → Fine-grained tokens → Generate 
 - 만료일은 길게(예: 1년) 잡으세요.
 
 ### 3. 중계 서버 배포 (Cloudflare Worker, 무료)
-터미널에서:
+대시보드에서 하는 방법이 가장 쉬워요.
+
+1. `dash.cloudflare.com` → Workers & Pages → Create → Hello World → 이름 `bukang-rank` → Deploy → Edit code
+2. 기본 코드를 지우고 `worker/worker.js` 내용을 통째로 붙여넣은 뒤 Deploy
+3. Settings → Variables and Secrets → Add → 종류 **Secret**, 이름 `GH_TOKEN`, 값은 2번에서 만든 토큰 → 저장 후 Deploy
+
+`REPO`, `FILE`, `ALLOWED_ORIGINS`는 코드에 기본값이 들어 있어서 따로 넣지 않아도 돼요.
+(레포 이름이나 Pages 주소가 다르면 같은 이름의 변수로 덮어쓰세요.)
+
+터미널로 하려면:
 
 ```bash
 cd worker
@@ -33,9 +42,6 @@ npx wrangler login
 npx wrangler deploy
 npx wrangler secret put GH_TOKEN   # 2번에서 만든 토큰을 붙여넣기
 ```
-
-대시보드로 하려면 Workers & Pages → Create → Hello World로 만든 뒤 `worker.js` 내용을 붙여넣고,
-Settings → Variables에 `wrangler.toml`의 세 값(`REPO`, `FILE`, `ALLOWED_ORIGINS`)과 비밀 변수 `GH_TOKEN`을 넣으면 돼요.
 
 배포가 끝나면 `https://bukang-rank.<계정>.workers.dev` 같은 주소가 나와요.
 

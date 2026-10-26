@@ -3,9 +3,13 @@
 // GitHub 토큰은 이 서버의 비밀 변수(GH_TOKEN)에만 두고, 게임 페이지에는 넣지 않습니다.
 
 const KEEP = 100;
+// 별도 설정 없이 동작하도록 기본값을 넣어 두었어요. 필요하면 Cloudflare 변수로 덮어쓸 수 있어요.
+const DEFAULT_REPO = 'lloydknam/bukang-escape';
+const DEFAULT_FILE = 'scores.json';
 
 export default {
-  async fetch(req, env) {
+  async fetch(req, env0) {
+    const env = { ...env0, REPO: env0.REPO || DEFAULT_REPO, FILE: env0.FILE || DEFAULT_FILE };
     const allowed = (env.ALLOWED_ORIGINS || 'https://lloydknam.github.io').split(',').map((s) => s.trim());
     const origin = req.headers.get('Origin') || '';
     const okOrigin = allowed.includes(origin);
