@@ -93,7 +93,9 @@ h2{font-size:10.5cqw}
 .rank .pt{font-family:var(--font-display);font-variant-numeric:tabular-nums}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .credit{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 12px;font-size:12px;line-height:1.4;color:var(--ink)}
-.credit b{font-family:var(--font-display);font-weight:400}
+.credit{align-items:center}
+.credit .lab{display:inline-flex;line-height:0}
+.credit .lab img{display:block;height:40px;width:auto;max-width:100%}
 .snd{font:inherit;font-size:12px;color:var(--ink);background:none;border:1px solid var(--ink);border-radius:999px;padding:1px 10px;cursor:pointer}
 .snd:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
 .credit a{color:var(--ink);text-underline-offset:2px}
@@ -166,8 +168,7 @@ window.RANK_API="";
 </div>
 
 <footer class="credit">
-  <b>Lloyd's balcony lab</b>
-  <span>with claude · <a href="https://github.com/lloydknam" target="_blank" rel="noopener">GitHub(@lloydknam)</a></span>
+  <a class="lab" href="https://github.com/lloydknam" target="_blank" rel="noopener" title="GitHub(@lloydknam)"><img src="assets/brand/lockup-light.svg" alt="Lloyd's Balcony Lab · with claude · GitHub(@lloydknam)" height="40"></a>
   <button class="snd" id="btnSnd" type="button" aria-pressed="true">소리 끄기</button>
 </footer>
 

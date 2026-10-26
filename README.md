@@ -2,7 +2,7 @@
 
 부산시 그물과 치킨 빌런을 피해 60초를 버티면 먼 바다로 탈출하는 미니게임이에요.
 
-Lloyd's balcony lab · with claude · [GitHub(@lloydknam)](https://github.com/lloydknam)
+<a href="https://github.com/lloydknam"><img src="assets/brand/lockup-light.png" alt="Lloyd's Balcony Lab · with claude · GitHub(@lloydknam)" height="48"></a>
 
 ## 구성
 
