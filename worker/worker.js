@@ -23,6 +23,16 @@ export default {
 
     const url = new URL(req.url);
     try {
+      if (req.method === 'GET' && url.pathname === '/debug') {
+        // 설정 점검용: 토큰 값은 보여주지 않고, 들어 있는지와 길이만 알려줍니다.
+        const hasToken = typeof env0.GH_TOKEN === 'string' && env0.GH_TOKEN.length > 0;
+        let github = 'skip';
+        if (hasToken) {
+          const r = await fetch(`https://api.github.com/repos/${env.REPO}/contents/${env.FILE}`, { headers: gh(env) });
+          github = r.status;
+        }
+        return json({ hasToken, tokenLength: hasToken ? env0.GH_TOKEN.length : 0, repo: env.REPO, file: env.FILE, githubStatus: github }, 200, cors);
+      }
       if (req.method === 'GET' && url.pathname === '/scores') {
         const { rows } = await readFile(env);
         return json(rows.slice(0, 10), 200, cors);
@@ -44,7 +54,7 @@ export default {
         return json({ error: 'write' }, 502, cors);
       }
     } catch (e) {
-      return json({ error: 'server' }, 500, cors);
+      return json({ error: 'server', detail: String(e && e.message || e).slice(0, 80) }, 500, cors);
     }
     return json({ error: 'not found' }, 404, cors);
   },
