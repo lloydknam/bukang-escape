@@ -83,7 +83,8 @@ h2{font-size:10.5cqw}
 .mini:active{transform:translateY(.6cqw);box-shadow:0 .2cqw 0 var(--pin-deep)}
 .mini:disabled{opacity:.5;cursor:default}
 .mini:focus-visible{outline:.7cqw solid var(--ink);outline-offset:.4cqw}
-.rank{list-style:none;margin:0;padding:0;width:100%;max-height:41cqw;overflow-y:auto;display:grid;gap:1cqw;text-align:left}
+.score{margin:0;font-family:var(--font-display);font-size:9.5cqw;line-height:1.1;color:var(--pin-deep);font-variant-numeric:tabular-nums}
+.rank{list-style:none;margin:0;padding:0;width:100%;max-height:32cqw;overflow-y:auto;display:grid;gap:1cqw;text-align:left}
 .rank li{display:grid;grid-template-columns:7cqw minmax(0,1fr) auto;gap:2cqw;align-items:center;background:#fff;border-radius:2.4cqw;padding:1.2cqw 2.6cqw;font-size:3.7cqw;line-height:1.3}
 .rank li.me{outline:.6cqw solid var(--pin)}
 .rank li.empty{display:block;text-align:center;opacity:.7}
@@ -93,16 +94,14 @@ h2{font-size:10.5cqw}
 .rank .pt{font-family:var(--font-display);font-variant-numeric:tabular-nums}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .credit{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 12px;font-size:12px;line-height:1.4;color:var(--ink)}
-.credit{align-items:center}
-.credit .lab{display:inline-flex;line-height:0}
-.credit .lab img{display:block;height:40px;width:auto;max-width:100%}
+.credit b{font-family:var(--font-display);font-weight:400}
 .snd{font:inherit;font-size:12px;color:var(--ink);background:none;border:1px solid var(--ink);border-radius:999px;padding:1px 10px;cursor:pointer}
 .snd:focus-visible{outline:2px solid var(--pin);outline-offset:2px}
 .credit a{color:var(--ink);text-underline-offset:2px}
 </style>
 
 <script>
-/* 랭킹 서버(Cloudflare Worker) 주소를 따옴표 안에 넣으세요. 예: "https://bukang-rank.내계정.workers.dev" */
+/* 랭킹 서버(Cloudflare Worker) 주소 */
 window.RANK_API="https://bukang-rank.lloydnam.workers.dev";
 </script>
 </head>
@@ -141,7 +140,7 @@ window.RANK_API="https://bukang-rank.lloydnam.workers.dev";
       <li data-k="move">화면을 드래그해서 헤엄쳐요. PC는 방향키나 WASD예요.</li>
       <li data-k="danger">빨간 원이 차오르면 그물이 떨어져요. 바로 벗어나요.</li>
       <li data-k="chicken">치킨 빌런이 던지는 치킨도 피해요. 주황 원 안이 떨어질 자리예요.</li>
-      <li data-k="cheer">시민들이 던지는 하트를 모아요. 응원이 가득 차면 대시로 그물을 통과해요.</li>
+      <li data-k="cheer">하트를 모아 점수를 올려요. 크게 반짝이는 황금 하트는 4배예요. 응원이 가득 차면 대시로 그물을 통과해요.</li>
     </ul>
     <button class="go" id="btnStart" type="button">출발!</button>
     <p class="fine" id="bestLine">비공식 팬 게임이에요. 실제 기관과 관련이 없어요.</p>
@@ -150,10 +149,11 @@ window.RANK_API="https://bukang-rank.lloydnam.workers.dev";
   <section class="screen" id="scrEnd" hidden>
     <h2 id="endTitle">탈출 성공!</h2>
     <p class="lead" id="endMsg"></p>
+    <p class="score" id="endScore">0점</p>
     <dl class="stats">
       <div class="stat"><dt>버틴 시간</dt><dd id="stTime">0초</dd></div>
       <div class="stat"><dt>모은 하트</dt><dd id="stHearts">0</dd></div>
-      <div class="stat"><dt>응원 대시</dt><dd id="stDash">0회</dd></div>
+      <div class="stat"><dt>반짝 하트</dt><dd id="stDash">0개</dd></div>
     </dl>
     <form class="namebox" id="nameForm" autocomplete="off">
       <label class="sr" for="nameIn">이름</label>
@@ -168,7 +168,8 @@ window.RANK_API="https://bukang-rank.lloydnam.workers.dev";
 </div>
 
 <footer class="credit">
-  <a class="lab" href="https://github.com/lloydknam" target="_blank" rel="noopener" title="GitHub(@lloydknam)"><img src="assets/brand/lockup-light.svg" alt="Lloyd's Balcony Lab · with claude · GitHub(@lloydknam)" height="40"></a>
+  <b>Lloyd's balcony lab</b>
+  <span>with claude · <a href="https://github.com/lloydknam" target="_blank" rel="noopener">GitHub(@lloydknam)</a></span>
   <button class="snd" id="btnSnd" type="button" aria-pressed="true">소리 끄기</button>
 </footer>
 
@@ -245,7 +246,7 @@ var input={active:false,id:null,sx:0,sy:0,x0:0,y0:0,gx:0,gy:0,l:0,r:0,u:0,d:0};
 
 function newGame(){
   shark={x:W/2,y:430,vx:0,vy:0,face:1,r:12,inv:0,dash:0,tilt:0};
-  game={t:0,lives:3,cheer:0,collected:0,dashes:0,nextNet:1.6,nextSweep:9,nextHeart:0.5,nextBubble:0.8,nextChicken:7,shake:0,flash:0,trail:0,won:false,endT:0};
+  game={t:0,lives:3,cheer:0,collected:0,dashes:0,nextNet:1.6,nextSweep:9,nextHeart:0.5,nextBubble:0.8,nextChicken:7,pts:0,golds:0,shake:0,flash:0,trail:0,won:false,endT:0};
   nets=[];sweeps=[];hearts=[];bubbles=[];fx=[];chickens=[];villain={side:1,y:300,q:0,cd:0,t:0,vis:0,throwA:0};
   input.active=false;input.id=null;
 }
@@ -293,7 +294,7 @@ function spawnHeart(){
   var side=Math.random()<0.5?-1:1;
   var c=citizenNear(side,ty);
   var tx=side<0?rand(70,170):rand(190,290);
-  hearts.push({sx:c.x,sy:c.y-6,tx:tx,ty:clamp(ty+rand(-20,20),90,572),x:c.x,y:c.y,age:0,p:0,state:'fly',fa:0,ph:rand(0,6.28)});
+  hearts.push({sx:c.x,sy:c.y-6,tx:tx,ty:clamp(ty+rand(-20,20),90,572),x:c.x,y:c.y,age:0,p:0,state:'fly',fa:0,ph:rand(0,6.28),gold:Math.random()<0.2&&!hearts.some(function(q){return q.gold;})});
   c.toss=0.5;
 }
 
@@ -320,18 +321,27 @@ function updateHearts(dt,collect){
     }
     if(collect&&(h.state==='float'||h.p>0.5)){
       var dx=h.x-shark.x,dy=h.y-shark.y;
-      if(dx*dx+dy*dy<(shark.r+13)*(shark.r+13)){collectHeart(h);hearts.splice(i,1);continue;}
+      var cr=shark.r+(h.gold?25:18);
+      if(dx*dx+dy*dy<cr*cr){collectHeart(h);hearts.splice(i,1);continue;}
     }
-    if(h.state==='float'&&h.fa>6.5)hearts.splice(i,1);
+    if(h.state==='float'&&h.fa>(h.gold?4.8:6.5))hearts.splice(i,1);
   }
 }
 function collectHeart(h){
   var g=game;g.collected++;
-  burst(h.x,h.y,'heart',6,'#ee8fa3');
-  addText(h.x,h.y-12,'+응원','#d4506a',13,0.8);
+  if(h.gold){
+    g.golds++;g.pts+=100;
+    burst(h.x,h.y,'heart',12,'#ffd54a');
+    addRing(h.x,h.y,48,'#ffd54a');
+    addText(h.x,h.y-16,'+100','#c47a00',20,1.1);
+  }else{
+    g.pts+=25;
+    burst(h.x,h.y,'heart',6,'#ee8fa3');
+    addText(h.x,h.y-14,'+25','#d4506a',14,0.8);
+  }
   if(shark.dash<=0){
     var before=g.cheer;
-    g.cheer=Math.min(100,g.cheer+11);
+    g.cheer=Math.min(100,g.cheer+(h.gold?30:11));
     if(before<100&&g.cheer>=100){
       addText(W/2,300,'응원 가득! 아래 버튼을 눌러요','#d4506a',16,1.8);
       for(var i=0;i<3;i++)addBubble(randCitizen(),pick(DASHP));
@@ -479,6 +489,7 @@ function recLine(rec){
   return parts.join(' · ');
 }
 function $(id){return document.getElementById(id);}
+function lastRes0(time,win,g){return Math.round(time*100)+g.pts+(win?2000+g.lives*500:0);}
 function endGame(win){
   var g=game;mode='end';g.won=win;g.endT=0;
   var time=Math.min(GOAL,g.t),rec=loadRec();
@@ -492,9 +503,10 @@ function endGame(win){
   $('endMsg').textContent=msg;
   $('stTime').textContent=(Math.round(time*10)/10)+'초';
   $('stHearts').textContent=g.collected;
-  $('stDash').textContent=g.dashes+'회';
+  $('stDash').textContent=g.golds+'개';
+  $('endScore').textContent=lastRes0(time,win,g).toLocaleString('ko-KR')+'점';
   $('endBest').textContent=recLine(rec);
-  lastRes={score:Math.round(time*100)+g.collected*25+(win?2000+g.lives*500:0),time:Math.round(time*10)/10,hearts:g.collected,won:win};
+  lastRes={score:Math.round(time*100)+g.pts+(win?2000+g.lives*500:0),time:Math.round(time*10)/10,hearts:Math.round(g.pts/25),won:win};
   saved=false;myId=null;noteMsg='';
   $('nameForm').hidden=false;$('btnSave').disabled=false;
   try{$('nameIn').value=localStorage.getItem('bukang-name')||'';}catch(e){}
@@ -837,14 +849,36 @@ function drawSweep(s){
     ctx.restore();
   }
 }
+function sparkle(x,y,r,al){
+  ctx.save();ctx.globalAlpha*=al;ctx.fillStyle='#fffbe0';
+  ctx.beginPath();ctx.moveTo(x,y-r);ctx.quadraticCurveTo(x+r*0.15,y-r*0.15,x+r,y);
+  ctx.quadraticCurveTo(x+r*0.15,y+r*0.15,x,y+r);ctx.quadraticCurveTo(x-r*0.15,y+r*0.15,x-r,y);
+  ctx.quadraticCurveTo(x-r*0.15,y-r*0.15,x,y-r);ctx.fill();ctx.restore();
+}
 function drawHeartItem(h){
-  var a=1;
-  if(h.state==='float'&&h.fa>5.5)a=Math.floor(T*10)%2?0.35:1;
+  var a=1,i;
+  if(h.state==='float'&&h.fa>(h.gold?3.6:5.5))a=Math.floor(T*10)%2?0.35:1;
   ctx.save();ctx.globalAlpha=a;
-  var s=9+Math.sin(T*5+h.ph)*0.8;
-  ctx.fillStyle='rgba(255,255,255,0.6)';circle(h.x,h.y,13);ctx.fill();
-  heartPath(h.x,h.y,s);ctx.fillStyle='#ee6f8a';ctx.fill();
-  ctx.strokeStyle='#fff';ctx.lineWidth=2;ctx.stroke();
+  if(h.gold){
+    var s=17+Math.sin(T*6+h.ph)*1.2,gl=ctx.createRadialGradient(h.x,h.y,4,h.x,h.y,36);
+    gl.addColorStop(0,'rgba(255,224,110,0.85)');gl.addColorStop(1,'rgba(255,224,110,0)');
+    ctx.fillStyle=gl;circle(h.x,h.y,36);ctx.fill();
+    var lg=ctx.createLinearGradient(h.x-s,h.y-s,h.x+s,h.y+s);
+    lg.addColorStop(0,'#fff0a0');lg.addColorStop(0.55,'#ffc93c');lg.addColorStop(1,'#ff8fb0');
+    heartPath(h.x,h.y,s);ctx.fillStyle=lg;ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2.6;ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.75)';ctx.beginPath();ctx.ellipse(h.x-s*0.45,h.y-s*0.35,s*0.22,s*0.12,-0.6,0,6.2832);ctx.fill();
+    for(i=0;i<3;i++){
+      var an=T*2+i*2.1,rr=27+Math.sin(T*3+i)*2;
+      sparkle(h.x+Math.cos(an)*rr,h.y+Math.sin(an)*rr,4+2.5*Math.abs(Math.sin(T*7+i*2)),0.6+0.4*Math.sin(T*9+i));
+    }
+  }else{
+    var s2=12.5+Math.sin(T*5+h.ph)*0.9;
+    ctx.fillStyle='rgba(255,255,255,0.6)';circle(h.x,h.y,18);ctx.fill();
+    heartPath(h.x,h.y,s2);ctx.fillStyle='#ee6f8a';ctx.fill();
+    ctx.strokeStyle='#fff';ctx.lineWidth=2.2;ctx.stroke();
+    ctx.fillStyle='rgba(255,255,255,0.65)';ctx.beginPath();ctx.ellipse(h.x-s2*0.45,h.y-s2*0.3,s2*0.2,s2*0.11,-0.6,0,6.2832);ctx.fill();
+  }
   ctx.restore();
 }
 function drawBubbles(){
@@ -978,6 +1012,9 @@ function drawHUD(){
     if(i<g.lives){ctx.fillStyle=C.pin;ctx.fill();ctx.strokeStyle=C.ink;ctx.lineWidth=1.6;ctx.stroke();}
     else{ctx.fillStyle='rgba(58,42,32,0.14)';ctx.fill();}
   }
+  var sc=Math.floor(g.t*100)+g.pts;
+  ctx.fillStyle=C.ink;ctx.textAlign='left';ctx.textBaseline='middle';ctx.font='12px '+FD;
+  ctx.fillText('점수 '+sc.toLocaleString('ko-KR'),14,43);
   var bx=108,bw=150,by=20,bh=11,prog=clamp(g.t/GOAL,0,1);
   rrect(bx,by,bw,bh,5.5);ctx.fillStyle='#fff';ctx.fill();ctx.strokeStyle=C.ink;ctx.lineWidth=1.6;ctx.stroke();
   if(prog>0){ctx.save();rrect(bx,by,bw,bh,5.5);ctx.clip();ctx.fillStyle=C.canal;ctx.fillRect(bx,by,bw*prog,bh);ctx.restore();}
