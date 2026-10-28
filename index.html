@@ -84,8 +84,8 @@ h2{font-size:10.5cqw}
 .mini:disabled{opacity:.5;cursor:default}
 .mini:focus-visible{outline:.7cqw solid var(--ink);outline-offset:.4cqw}
 .score{margin:0;font-family:var(--font-display);font-size:9.5cqw;line-height:1.1;color:var(--pin-deep);font-variant-numeric:tabular-nums}
-.rank{list-style:none;margin:0;padding:0;width:100%;max-height:32cqw;overflow-y:auto;display:grid;gap:1cqw;text-align:left}
-.rank li{display:grid;grid-template-columns:7cqw minmax(0,1fr) auto;gap:2cqw;align-items:center;background:#fff;border-radius:2.4cqw;padding:1.2cqw 2.6cqw;font-size:3.7cqw;line-height:1.3}
+.rank{list-style:none;margin:0;padding:0;width:100%;max-height:56cqw;overflow-y:auto;display:grid;gap:.8cqw;text-align:left}
+.rank li{display:grid;grid-template-columns:6cqw minmax(0,1fr) auto;gap:2cqw;align-items:center;background:#fff;border-radius:2.2cqw;padding:.8cqw 2.6cqw;font-size:3.5cqw;line-height:1.3}
 .rank li.me{outline:.6cqw solid var(--pin)}
 .rank li.empty{display:block;text-align:center;opacity:.7}
 .rank .n{font-family:var(--font-display);color:var(--pin)}
@@ -489,7 +489,7 @@ function recLine(rec){
   return parts.join(' · ');
 }
 function $(id){return document.getElementById(id);}
-function lastRes0(time,win,g){return Math.round(time*100)+g.pts+(win?2000+g.lives*500:0);}
+function lastRes0(time,win,g){return Math.round(time*10)*10+g.pts+(win?2000+g.lives*500:0);}
 function endGame(win){
   var g=game;mode='end';g.won=win;g.endT=0;
   var time=Math.min(GOAL,g.t),rec=loadRec();
@@ -506,7 +506,7 @@ function endGame(win){
   $('stDash').textContent=g.golds+'개';
   $('endScore').textContent=lastRes0(time,win,g).toLocaleString('ko-KR')+'점';
   $('endBest').textContent=recLine(rec);
-  lastRes={score:Math.round(time*100)+g.pts+(win?2000+g.lives*500:0),time:Math.round(time*10)/10,hearts:Math.round(g.pts/25),won:win};
+  lastRes={score:lastRes0(time,win,g),time:Math.round(time*10)/10,hearts:Math.round(g.pts/25),won:win};
   saved=false;myId=null;noteMsg='';
   $('nameForm').hidden=false;$('btnSave').disabled=false;
   try{$('nameIn').value=localStorage.getItem('bukang-name')||'';}catch(e){}
@@ -525,7 +525,7 @@ function saveLocalRank(r){
   try{localStorage.setItem('bukang-rank',JSON.stringify(a.slice(0,10)));}catch(e){}
 }
 function renderRank(){
-  var list=$('rankList'),useApi=!!API&&apiOk,shared=useApi||(!!db&&!rankErr),rows=useApi?apiRows:(shared?rankRows:localRank());
+  var list=$('rankList'),useApi=!!API&&apiOk,shared=useApi||(!!db&&!rankErr),rows=(useApi?apiRows:(shared?rankRows:localRank())).slice(0,7);
   list.textContent='';
   if(!rows.length){
     var em=document.createElement('li');em.className='empty';em.textContent='아직 기록이 없어요. 첫 번째 참가자가 되어 보세요.';list.appendChild(em);
@@ -539,7 +539,7 @@ function renderRank(){
     var pt=document.createElement('span');pt.className='pt';pt.textContent=(Number(r.score)||0).toLocaleString('ko-KR')+'점';
     li.appendChild(n);li.appendChild(nm);li.appendChild(pt);list.appendChild(li);
   });
-  $('rankNote').textContent=noteMsg||(shared?'친구들과 함께 쓰는 랭킹이에요. 상위 10명만 보여요.':'이 기기 기록만 보여요. 친구와 함께 보려면 참여자 권한으로 공유해야 해요.');
+  $('rankNote').textContent=noteMsg||(shared?'친구들과 함께 쓰는 랭킹이에요. 상위 7명만 보여요.':'이 기기 기록만 보여요. 친구와 함께 보려면 참여자 권한으로 공유해야 해요.');
 }
 (function(){
   try{
@@ -547,7 +547,7 @@ function renderRank(){
     claude.use('db').then(function(d){
       if(!d)return;
       db=d;
-      db.collection('scores').orderBy('score','desc').limit(10).onSnapshot(function(snap){
+      db.collection('scores').orderBy('score','desc').limit(7).onSnapshot(function(snap){
         rankRows=snap.docs.map(function(x){var o=x.data()||{};return {id:x.id,name:o.name,score:o.score,won:o.won};});
         rankErr=false;renderRank();
       },function(){rankErr=true;renderRank();});
@@ -557,7 +557,7 @@ function renderRank(){
 function loadApi(){
   if(!API)return;
   fetch(API+'/scores').then(function(r){if(!r.ok)throw 0;return r.json();}).then(function(j){
-    apiRows=(Array.isArray(j)?j:[]).slice(0,10).map(function(o){return {id:o.id,name:o.name,score:o.score,won:o.won};});
+    apiRows=(Array.isArray(j)?j:[]).slice(0,7).map(function(o){return {id:o.id,name:o.name,score:o.score,won:o.won};});
     apiOk=true;renderRank();
   }).catch(function(){apiOk=false;renderRank();});
 }
@@ -1012,7 +1012,7 @@ function drawHUD(){
     if(i<g.lives){ctx.fillStyle=C.pin;ctx.fill();ctx.strokeStyle=C.ink;ctx.lineWidth=1.6;ctx.stroke();}
     else{ctx.fillStyle='rgba(58,42,32,0.14)';ctx.fill();}
   }
-  var sc=Math.floor(g.t*100)+g.pts;
+  var sc=Math.round(Math.min(GOAL,g.t)*10)*10+g.pts;
   ctx.fillStyle=C.ink;ctx.textAlign='left';ctx.textBaseline='middle';ctx.font='12px '+FD;
   ctx.fillText('점수 '+sc.toLocaleString('ko-KR'),14,43);
   var bx=108,bw=150,by=20,bh=11,prog=clamp(g.t/GOAL,0,1);
