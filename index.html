@@ -92,6 +92,18 @@ h2{font-size:10.5cqw}
 .rank .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .rank .tg{margin-left:1.4cqw;padding:0 1.4cqw;border-radius:999px;background:var(--water);font-size:2.9cqw}
 .rank .pt{font-family:var(--font-display);font-variant-numeric:tabular-nums}
+.link{font:inherit;font-size:3.3cqw;color:var(--ink);background:none;border:0;border-bottom:1px solid currentColor;padding:0;cursor:pointer;line-height:1.3}
+.link:focus-visible{outline:.6cqw solid var(--pin);outline-offset:.5cqw}
+.rules{display:grid;gap:1.6cqw;width:100%;margin:0;text-align:left}
+.rules div{display:flex;justify-content:space-between;align-items:baseline;gap:3cqw;background:#fff;border-radius:2.4cqw;padding:2cqw 3.2cqw;font-size:4cqw}
+.rules dt{min-width:0}
+.rules dd{margin:0;font-family:var(--font-display);color:var(--pin-deep);white-space:nowrap;font-variant-numeric:tabular-nums}
+#scrRule{background:var(--paper)}
+.mine{width:100%;background:#fff;border-radius:3cqw;padding:2.4cqw 3.2cqw;text-align:left}
+.mine h3{margin:0 0 1cqw;font-family:var(--font-display);font-weight:400;font-size:4cqw;color:var(--pin-deep)}
+.mine ul{list-style:none;margin:0;padding:0;display:grid;gap:.6cqw;font-size:3.6cqw;font-variant-numeric:tabular-nums}
+.mine li{display:flex;justify-content:space-between;gap:2cqw}
+.mine li.total{margin-top:.4cqw;padding-top:.8cqw;border-top:1px solid rgba(58,42,32,.25);font-family:var(--font-display);color:var(--pin-deep)}
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .credit{display:flex;flex-wrap:wrap;justify-content:center;gap:2px 12px;font-size:12px;line-height:1.4;color:var(--ink)}
 .credit b{font-family:var(--font-display);font-weight:400}
@@ -143,6 +155,7 @@ window.RANK_API="https://bukang-rank.lloydnam.workers.dev";
       <li data-k="cheer">하트를 모아 점수를 올려요. 크게 반짝이는 황금 하트는 4배예요. 응원이 가득 차면 대시로 그물을 통과해요.</li>
     </ul>
     <button class="go" id="btnStart" type="button">출발!</button>
+    <button class="link" id="btnRuleT" type="button">점수 계산법</button>
     <p class="fine" id="bestLine">비공식 팬 게임이에요. 실제 기관과 관련이 없어요.</p>
   </section>
 
@@ -162,8 +175,26 @@ window.RANK_API="https://bukang-rank.lloydnam.workers.dev";
     </form>
     <ol class="rank" id="rankList" aria-label="참가자 랭킹"></ol>
     <p class="fine" id="rankNote"></p>
-    <p class="fine" id="endBest"></p>
+    <p class="fine"><span id="endBest"></span> <button class="link" id="btnRuleE" type="button">점수 계산법</button></p>
     <button class="go" id="btnAgain" type="button">다시 도전</button>
+  </section>
+
+  <section class="screen" id="scrRule" hidden role="dialog" aria-modal="true" aria-label="점수 계산법">
+    <h2>점수 계산법</h2>
+    <dl class="rules">
+      <div><dt>버틴 시간 (초)</dt><dd>× 100점</dd></div>
+      <div><dt>+ 하트 (개)</dt><dd>× 25점</dd></div>
+      <div><dt>+ 황금 하트 (개)</dt><dd>× 100점</dd></div>
+      <div><dt>+ 탈출 성공</dt><dd>2,000점</dd></div>
+      <div><dt>+ 남은 체력 (칸)</dt><dd>× 500점</dd></div>
+    </dl>
+    <p class="fine">탈출 점수와 체력 점수는 먼 바다까지 탈출했을 때만 받아요.</p>
+    <p class="lead" id="ruleEx">예: 60초를 버티고 체력 3칸으로 탈출하면 6,000 + 2,000 + 1,500 = 9,500점에 하트 점수가 더해져요.</p>
+    <div class="mine" id="ruleMine" hidden>
+      <h3>내 점수</h3>
+      <ul id="mineList"></ul>
+    </div>
+    <button class="go" id="btnRuleClose" type="button">닫기</button>
   </section>
 </div>
 
@@ -506,7 +537,7 @@ function endGame(win){
   $('stDash').textContent=g.golds+'개';
   $('endScore').textContent=lastRes0(time,win,g).toLocaleString('ko-KR')+'점';
   $('endBest').textContent=recLine(rec);
-  lastRes={score:lastRes0(time,win,g),time:Math.round(time*10)/10,hearts:Math.round(g.pts/25),won:win};
+  lastRes={score:lastRes0(time,win,g),time:Math.round(time*10)/10,hearts:Math.round(g.pts/25),won:win,detail:{normals:g.collected-g.golds,golds:g.golds,lives:g.lives}};
   saved=false;myId=null;noteMsg='';
   $('nameForm').hidden=false;$('btnSave').disabled=false;
   try{$('nameIn').value=localStorage.getItem('bukang-name')||'';}catch(e){}
@@ -628,6 +659,30 @@ sndLabel();
 document.addEventListener('visibilitychange',function(){
   if(document.hidden)audioStop();else if(AC&&bgm.on)audioStart();
 });
+var scrRule=$('scrRule');
+function fmt(n){return Number(n).toLocaleString('ko-KR')+'점';}
+function openRule(fromEnd){
+  var mine=fromEnd===true&&lastRes&&lastRes.detail;
+  $('ruleMine').hidden=!mine;$('ruleEx').hidden=!!mine;
+  if(mine){
+    var d=lastRes.detail,ul=$('mineList'),rows=[
+      [lastRes.time+'초 × 100점',fmt(Math.round(lastRes.time*100))],
+      ['하트 '+d.normals+'개 × 25점',fmt(d.normals*25)],
+      ['황금 하트 '+d.golds+'개 × 100점',fmt(d.golds*100)]];
+    if(lastRes.won){rows.push(['탈출 성공',fmt(2000)]);rows.push(['남은 체력 '+d.lives+'칸 × 500점',fmt(d.lives*500)]);}
+    ul.textContent='';
+    rows.forEach(function(r){var li=document.createElement('li'),a=document.createElement('span'),b=document.createElement('span');a.textContent=r[0];b.textContent=r[1];li.appendChild(a);li.appendChild(b);ul.appendChild(li);});
+    var t=document.createElement('li');t.className='total';
+    var ta=document.createElement('span'),tb=document.createElement('span');ta.textContent='합계';tb.textContent=fmt(lastRes.score);
+    t.appendChild(ta);t.appendChild(tb);ul.appendChild(t);
+  }
+  scrRule.hidden=false;try{$('btnRuleClose').focus({preventScroll:true});}catch(e){}
+}
+function closeRule(){scrRule.hidden=true;}
+$('btnRuleT').addEventListener('click',function(){openRule(false);});
+$('btnRuleE').addEventListener('click',function(){openRule(true);});
+$('btnRuleClose').addEventListener('click',closeRule);
+window.addEventListener('keydown',function(e){if(e.key==='Escape')closeRule();});
 function startGame(){
   audioStart();
   scrTitle.hidden=true;scrEnd.hidden=true;
